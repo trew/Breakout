@@ -1,5 +1,9 @@
 package se.samuelandersson.breakout.systems;
 
+import se.samuelandersson.breakout.Constants;
+import se.samuelandersson.breakout.GameManager;
+import se.samuelandersson.breakout.components.Position;
+import se.samuelandersson.breakout.components.Sprite;
 import se.samuelandersson.breakout.components.Velocity;
 
 import com.artemis.ComponentMapper;
@@ -15,11 +19,14 @@ import com.badlogic.gdx.InputProcessor;
 public class PlayerInputSystem extends VoidEntitySystem implements InputProcessor {
 
 	@Mapper ComponentMapper<Velocity> vm;
+	@Mapper ComponentMapper<Position> pm;
+	@Mapper ComponentMapper<Sprite> sm;
 
 	float state = 0;
 
 	@Override
 	protected void processSystem() {
+		if (Constants.USE_MOUSE) return;
 		Entity e = world.getManager(TagManager.class).getEntity("PLAYER");
 		if (e == null) return;
 
@@ -36,6 +43,12 @@ public class PlayerInputSystem extends VoidEntitySystem implements InputProcesso
 
 	@Override
 	public boolean keyDown(int keycode) {
+		if (keycode == Keys.SPACE) {
+			world.getManager(GameManager.class).reset();
+		}
+		if (keycode == Keys.B) {
+			world.getManager(GameManager.class).addBall();
+		}
 		return false;
 	}
 
@@ -66,6 +79,14 @@ public class PlayerInputSystem extends VoidEntitySystem implements InputProcesso
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
+		if (Constants.USE_MOUSE) {
+			Entity e = world.getManager(TagManager.class).getEntity("PLAYER");
+			if (e != null) {
+				Position p = pm.get(e);
+				Sprite s = sm.get(e);
+				p.x = screenX - s.w / 2;
+			}
+		}
 		return false;
 	}
 

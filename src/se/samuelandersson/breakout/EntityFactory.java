@@ -1,5 +1,6 @@
 package se.samuelandersson.breakout;
 
+import se.samuelandersson.breakout.components.ActionComponent;
 import se.samuelandersson.breakout.components.Position;
 import se.samuelandersson.breakout.components.Sprite;
 import se.samuelandersson.breakout.components.Velocity;
@@ -22,42 +23,43 @@ public class EntityFactory {
 	public static Entity createPlayer() {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - 50, 10));
+		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - Constants.PADDLE_WIDTH / 2, 10));
 		e.addComponent(new Velocity(0, 0));
-		e.addComponent(new Sprite(100, 10, Color.YELLOW));
+		e.addComponent(new Sprite(Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, Color.WHITE));
+		e.addComponent(new ActionComponent());
 
 		world.getManager(TagManager.class).register("PLAYER", e);
-		world.getManager(GroupManager.class).add(e, Group.PLAYER);
+		world.getManager(GroupManager.class).add(e, Group.BLOCK);
 		return e;
 	}
 
 	public static Entity createBall() {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - 5, 50));
-		e.addComponent(new Velocity(50, -50));
-		e.addComponent(new Sprite(10, 10));
+		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - 5, Gdx.graphics.getHeight() / 2 - 5));
+		e.addComponent(new Velocity(50, -100));
+		e.addComponent(new Sprite(Constants.BALL_WIDTH, Constants.BALL_HEIGHT));
+		e.addComponent(new ActionComponent());
 
-		world.getManager(TagManager.class).register("BALL", e);
 		world.getManager(GroupManager.class).add(e, Group.BALL);
 
 		return e;
 	}
 
-	public static Entity createBox(float x, float y, float w, float h) {
-		return createBox(x, y, w, h, Color.WHITE);
+	public static Entity createBlock(float x, float y, float w, float h) {
+		return createBlock(x, y, w, h, Color.WHITE);
 	}
 
-	public static Entity createBox(float x, float y, float w, float h, Color color) {
+	public static Entity createBlock(float x, float y, float w, float h, Color color) {
 		Entity e = world.createEntity();
 
 		e.addComponent(new Position(x, y));
 		e.addComponent(new Velocity(0, 0));
 		e.addComponent(new Sprite(w, h, color));
+		e.addComponent(new ActionComponent());
 
-		world.getManager(GroupManager.class).add(e, Group.BOX);
+		world.getManager(GroupManager.class).add(e, Group.BLOCK);
 
 		return e;
 	}
-
 }

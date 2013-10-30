@@ -8,6 +8,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 
 import se.samuelandersson.breakout.EntityFactory;
+import se.samuelandersson.breakout.GameManager;
+import se.samuelandersson.breakout.systems.ActionsSystem;
 import se.samuelandersson.breakout.systems.CollisionSystem;
 import se.samuelandersson.breakout.systems.MovementSystem;
 import se.samuelandersson.breakout.systems.PlayerInputSystem;
@@ -25,26 +27,33 @@ public class GameScreen implements Screen {
 		updateSystems = new Array<EntitySystem>();
 		renderSystems = new Array<EntitySystem>();
 		
+		reset();
+	}
+	
+	public void reset() {
+		updateSystems.clear();
+		renderSystems.clear();
+		
 		world = new World();
 		
 		EntityFactory.setWorld(world);
 		
 		world.setManager(new GroupManager());
 		world.setManager(new TagManager());
+		world.setManager(new GameManager());
 
 		PlayerInputSystem input = new PlayerInputSystem();
 		Gdx.input.setInputProcessor(input);
 		
+		updateSystems.add(world.setSystem(new ActionsSystem(), false));
 		updateSystems.add(world.setSystem(new MovementSystem(), false));
 		updateSystems.add(world.setSystem(input, false));
 		updateSystems.add(world.setSystem(new CollisionSystem(), false));
 		renderSystems.add(world.setSystem(new RenderSystem(), false));
 		
 		world.initialize();
-		
-		EntityFactory.createPlayer().addToWorld();
-		EntityFactory.createBall().addToWorld();
 	}
+	
 
 	@Override
 	public void update(float delta) {

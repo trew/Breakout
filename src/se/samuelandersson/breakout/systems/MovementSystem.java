@@ -33,11 +33,23 @@ public class MovementSystem extends EntityProcessingSystem {
 
 		// FIXME: this is collision detection; should not be done here.
 		Sprite s = sm.get(e);
-		if (p.x + s.w > Gdx.graphics.getWidth()) v.x = -v.x;
-		if (p.x < 0) v.x = -v.x;
+		if (p.x + s.w > Gdx.graphics.getWidth()) {
+			v.x = -v.x;
+			p.x = Gdx.graphics.getWidth() - s.w;
+		}
+		if (p.x < 0) {
+			v.x = -v.x;
+			p.x = 0;
+		}
 
-		if (p.y + s.h > Gdx.graphics.getHeight()) v.y = -v.y;
-		if (p.y < 0) v.y = -v.y;
+		if (p.y + s.h > Gdx.graphics.getHeight()) {
+			v.y = -v.y;
+			p.y = Gdx.graphics.getHeight() - s.h;
+		}
+		if (p.y < 0) {
+			v.y = -v.y;
+			p.y = 0;
+		}
 	}
 
 }

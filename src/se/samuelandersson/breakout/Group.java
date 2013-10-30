@@ -1,12 +1,12 @@
 package se.samuelandersson.breakout;
 
-public final class Group {
+import com.artemis.managers.GroupManager;
 
+/** Groups used together with {@link GroupManager} */
+public final class Group {
 	public static final String BALL = "ball";
-	public static final String BOX = "box";
-	public static final String PLAYER = "player";
-	
+	public static final String BLOCK = "box";
+
 	private Group() {
 	}
-
 }

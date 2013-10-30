@@ -1,6 +1,8 @@
 package se.samuelandersson.breakout.systems;
 
 import se.samuelandersson.breakout.Group;
+import se.samuelandersson.breakout.actions.Actions;
+import se.samuelandersson.breakout.components.ActionComponent;
 import se.samuelandersson.breakout.components.Position;
 import se.samuelandersson.breakout.components.Sprite;
 import se.samuelandersson.breakout.components.Velocity;
@@ -9,6 +11,7 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.managers.GroupManager;
+import com.artemis.managers.TagManager;
 import com.artemis.systems.VoidEntitySystem;
 import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.math.Rectangle;
@@ -19,6 +22,7 @@ public class CollisionSystem extends VoidEntitySystem {
 	@Mapper ComponentMapper<Velocity> vm;
 	@Mapper ComponentMapper<Position> pm;
 	@Mapper ComponentMapper<Sprite> sm;
+	@Mapper ComponentMapper<ActionComponent> am;
 
 	private interface CollisionHandler {
 		void handle(Entity a, Entity b, Rectangle intersection);
@@ -30,12 +34,6 @@ public class CollisionSystem extends VoidEntitySystem {
 		CollisionHandler handler;
 
 		private final Rectangle intersection = new Rectangle();
-
-		CollisionGroup(ImmutableBag<Entity> groupA, ImmutableBag<Entity> groupB, CollisionHandler handler) {
-			this.groupA = groupA;
-			this.groupB = groupB;
-			this.handler = handler;
-		}
 
 		CollisionGroup(String groupA, String groupB, CollisionHandler handler) {
 			this.groupA = world.getManager(GroupManager.class).getEntities(groupA);
@@ -54,10 +52,6 @@ public class CollisionSystem extends VoidEntitySystem {
 					}
 				}
 			}
-		}
-
-		private boolean overlaps(Position pa, Sprite sa, Position pb, Sprite sb) {
-			return !(pa.x > pb.x + sb.w || pa.x + sa.w < pb.x || pa.y > pb.y + sb.h || pa.y + sa.h < pb.y);
 		}
 
 		private boolean collides(Entity a, Entity b) {
@@ -86,46 +80,51 @@ public class CollisionSystem extends VoidEntitySystem {
 		collisionGroups = new Array<CollisionGroup>();
 	}
 
+	public boolean overlaps(Position pa, Sprite sa, Position pb, Sprite sb) {
+		return !(pa.x > pb.x + sb.w || pa.x + sa.w < pb.x || pa.y > pb.y + sb.h || pa.y + sa.h < pb.y);
+	}
+
 	@Override
 	protected void initialize() {
-		collisionGroups.add(new CollisionGroup(Group.BALL, Group.BOX, new CollisionHandler() {
+		collisionGroups.add(new CollisionGroup(Group.BALL, Group.BLOCK, new CollisionHandler() {
 			@Override
 			public void handle(Entity a, Entity b, Rectangle intersection) {
 				Velocity ballVelocity = vm.get(a);
+				
+				Position ballPosition = pm.get(a);
+				Sprite ballSprite = sm.get(a);
+
+				Position blockPosition = pm.get(b);
+				Sprite blockSprite = sm.get(b);
 
 				// if we hit the top or bottom
 				if (intersection.width >= intersection.height) {
-					// change Y velocity on ball
-					ballVelocity.y = -ballVelocity.y;
+					if (ballPosition.y > blockPosition.y) { // top
+						ballPosition.y = blockPosition.y + blockSprite.h;
+						ballVelocity.y = Math.abs(ballVelocity.y);
+					} else { // bottom
+						ballPosition.y = blockPosition.y - ballSprite.h;
+						ballVelocity.y = -Math.abs(ballVelocity.y);
+					}
 				}
 
 				// if we hit the left or right side
 				if (intersection.height >= intersection.width) {
-					// change X velocity on ball
-					ballVelocity.x = -ballVelocity.x;
+					if (ballPosition.x > blockPosition.x) { // right side
+						ballPosition.x = blockPosition.x + blockSprite.w;
+						ballVelocity.x = Math.abs(ballVelocity.x);
+					} else { // left side
+						ballPosition.x = blockPosition.x - ballSprite.w;
+						ballVelocity.x = -Math.abs(ballVelocity.x);
+					}
 				}
 
-				// ... and delete the box
+				// ... and delete the block
 				// TODO: delete it in a fancy and juicy way
-				b.deleteFromWorld();
-			}
-		}));
-
-		collisionGroups.add(new CollisionGroup(Group.BALL, Group.PLAYER, new CollisionHandler() {
-			@Override
-			public void handle(Entity a, Entity b, Rectangle intersection) {
-				Velocity ballVelocity = vm.get(a);
-
-				// if we hit the top or bottom
-				if (intersection.width >= intersection.height) {
-					// change Y velocity on ball
-					ballVelocity.y = -ballVelocity.y;
-				}
-
-				// if we hit the left or right side
-				if (intersection.height >= intersection.width) {
-					// change X velocity on ball
-					ballVelocity.x = -ballVelocity.x;
+				if (world.getManager(TagManager.class).getEntity("PLAYER").getId() != b.getId()) {
+					world.getManager(GroupManager.class).remove(b, Group.BLOCK);
+					ActionComponent ac = am.get(b);
+					ac.actions.add(Actions.sequence().addAction(Actions.scaleTo(1.5f, 1.5f, 1f)).addAction(Actions.remove()));
 				}
 			}
 		}));
