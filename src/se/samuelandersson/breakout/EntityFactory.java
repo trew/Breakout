@@ -27,7 +27,7 @@ public class EntityFactory {
 		e.addComponent(new Sprite(100, 10, Color.YELLOW));
 
 		world.getManager(TagManager.class).register("PLAYER", e);
-		world.getManager(GroupManager.class).add(e, "PLAYER");
+		world.getManager(GroupManager.class).add(e, Group.PLAYER);
 		return e;
 	}
 
@@ -39,7 +39,7 @@ public class EntityFactory {
 		e.addComponent(new Sprite(10, 10));
 
 		world.getManager(TagManager.class).register("BALL", e);
-		world.getManager(GroupManager.class).add(e, "BALL");
+		world.getManager(GroupManager.class).add(e, Group.BALL);
 
 		return e;
 	}
@@ -55,7 +55,7 @@ public class EntityFactory {
 		e.addComponent(new Velocity(0, 0));
 		e.addComponent(new Sprite(w, h, color));
 
-		world.getManager(GroupManager.class).add(e, "BOX");
+		world.getManager(GroupManager.class).add(e, Group.BOX);
 
 		return e;
 	}
