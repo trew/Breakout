@@ -1,11 +1,11 @@
 package se.samuelandersson.breakout.systems;
 
 import se.samuelandersson.breakout.Group;
-import se.samuelandersson.breakout.actions.Actions;
-import se.samuelandersson.breakout.components.ActionComponent;
-import se.samuelandersson.breakout.components.Position;
-import se.samuelandersson.breakout.components.Sprite;
-import se.samuelandersson.breakout.components.Velocity;
+import se.samuelandersson.gdxcommon.actions.Actions;
+import se.samuelandersson.gdxcommon.actions.SequenceAction;
+import se.samuelandersson.gdxcommon.components.ActionContainer;
+import se.samuelandersson.gdxcommon.components.SpriteComponent;
+import se.samuelandersson.gdxcommon.components.VelocityComponent;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
@@ -14,15 +14,15 @@ import com.artemis.managers.GroupManager;
 import com.artemis.managers.TagManager;
 import com.artemis.systems.VoidEntitySystem;
 import com.artemis.utils.ImmutableBag;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
 public class CollisionSystem extends VoidEntitySystem {
 
-	@Mapper ComponentMapper<Velocity> vm;
-	@Mapper ComponentMapper<Position> pm;
-	@Mapper ComponentMapper<Sprite> sm;
-	@Mapper ComponentMapper<ActionComponent> am;
+	@Mapper ComponentMapper<VelocityComponent> vm;
+	@Mapper ComponentMapper<SpriteComponent> sm;
+	@Mapper ComponentMapper<ActionContainer> am;
 
 	private interface CollisionHandler {
 		void handle(Entity a, Entity b, Rectangle intersection);
@@ -55,18 +55,15 @@ public class CollisionSystem extends VoidEntitySystem {
 		}
 
 		private boolean collides(Entity a, Entity b) {
-			Position pa = pm.get(a);
-			Sprite sa = sm.get(a);
+			SpriteComponent sa = sm.get(a);
+			SpriteComponent sb = sm.get(b);
 
-			Position pb = pm.get(b);
-			Sprite sb = sm.get(b);
-
-			if (overlaps(pa, sa, pb, sb)) {
+			if (overlaps(sa, sb)) {
 				// calculate intersection
-				float minX = Math.max(pa.x, pb.x);
-				float minY = Math.max(pa.y, pb.y);
-				float maxX = Math.min(pa.x + sa.w, pb.x + sb.w);
-				float maxY = Math.min(pa.y + sa.h, pb.y + sb.h);
+				float minX = Math.max(sa.x, sb.x);
+				float minY = Math.max(sa.y, sb.y);
+				float maxX = Math.min(sa.x + sa.w, sb.x + sb.w);
+				float maxY = Math.min(sa.y + sa.h, sb.y + sb.h);
 				intersection.set(minX, minY, maxX - minX, maxY - minY);
 				return true;
 			}
@@ -80,8 +77,8 @@ public class CollisionSystem extends VoidEntitySystem {
 		collisionGroups = new Array<CollisionGroup>();
 	}
 
-	public boolean overlaps(Position pa, Sprite sa, Position pb, Sprite sb) {
-		return !(pa.x > pb.x + sb.w || pa.x + sa.w < pb.x || pa.y > pb.y + sb.h || pa.y + sa.h < pb.y);
+	public boolean overlaps(SpriteComponent sa, SpriteComponent sb) {
+		return !(sa.x > sb.x + sb.w || sa.x + sa.w < sb.x || sa.y > sb.y + sb.h || sa.y + sa.h < sb.y);
 	}
 
 	@Override
@@ -89,42 +86,52 @@ public class CollisionSystem extends VoidEntitySystem {
 		collisionGroups.add(new CollisionGroup(Group.BALL, Group.BLOCK, new CollisionHandler() {
 			@Override
 			public void handle(Entity a, Entity b, Rectangle intersection) {
-				Velocity ballVelocity = vm.get(a);
+				VelocityComponent ballVelocity = vm.get(a);
 				
-				Position ballPosition = pm.get(a);
-				Sprite ballSprite = sm.get(a);
-
-				Position blockPosition = pm.get(b);
-				Sprite blockSprite = sm.get(b);
+				SpriteComponent ballSprite = sm.get(a);
+				SpriteComponent blockSprite = sm.get(b);
 
 				// if we hit the top or bottom
 				if (intersection.width >= intersection.height) {
-					if (ballPosition.y > blockPosition.y) { // top
-						ballPosition.y = blockPosition.y + blockSprite.h;
+					if (ballSprite.y > blockSprite.y) { // top
+						ballSprite.y = blockSprite.y + blockSprite.h;
 						ballVelocity.y = Math.abs(ballVelocity.y);
 					} else { // bottom
-						ballPosition.y = blockPosition.y - ballSprite.h;
+						ballSprite.y = blockSprite.y - ballSprite.h;
 						ballVelocity.y = -Math.abs(ballVelocity.y);
 					}
 				}
 
 				// if we hit the left or right side
 				if (intersection.height >= intersection.width) {
-					if (ballPosition.x > blockPosition.x) { // right side
-						ballPosition.x = blockPosition.x + blockSprite.w;
+					if (ballSprite.x > blockSprite.x) { // right side
+						ballSprite.x = blockSprite.x + blockSprite.w;
 						ballVelocity.x = Math.abs(ballVelocity.x);
 					} else { // left side
-						ballPosition.x = blockPosition.x - ballSprite.w;
+						ballSprite.x = blockSprite.x - ballSprite.w;
 						ballVelocity.x = -Math.abs(ballVelocity.x);
 					}
 				}
+
+				ActionContainer bc = am.get(a);
+				SequenceAction seq = Actions.sequence();
+				seq.addAction(Actions.scaleTo(1.5f, 1.5f, 0.1f));
+				seq.addAction(Actions.scaleTo(0.75f, 0.75f, 0.1f));
+				seq.addAction(Actions.scaleTo(1.0f, 1.0f, 0.1f));
+				bc.add(seq);
 
 				// ... and delete the block
 				// TODO: delete it in a fancy and juicy way
 				if (world.getManager(TagManager.class).getEntity("PLAYER").getId() != b.getId()) {
 					world.getManager(GroupManager.class).remove(b, Group.BLOCK);
-					ActionComponent ac = am.get(b);
-					ac.actions.add(Actions.sequence().addAction(Actions.scaleTo(1.5f, 1.5f, 1f)).addAction(Actions.remove()));
+					ActionContainer ac = am.get(b);
+					seq = Actions.sequence();
+					float startX = MathUtils.random(1.1f, 1.3f);
+					float startY = MathUtils.random(1.1f, 1.3f);
+					seq.addAction(Actions.scaleTo(startX, startY, 0.1f));
+					seq.addAction(Actions.scaleTo(0f, 0f, 0.2f));
+					seq.addAction(Actions.remove());
+					ac.add(seq);
 				}
 			}
 		}));

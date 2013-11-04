@@ -1,8 +1,7 @@
 package se.samuelandersson.breakout.systems;
 
 import se.samuelandersson.breakout.Assets;
-import se.samuelandersson.breakout.components.Position;
-import se.samuelandersson.breakout.components.Sprite;
+import se.samuelandersson.gdxcommon.components.SpriteComponent;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
@@ -15,14 +14,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class RenderSystem extends EntityProcessingSystem {
 
-	@Mapper ComponentMapper<Sprite> sm;
-	@Mapper ComponentMapper<Position> pm;
+	@Mapper ComponentMapper<SpriteComponent> sm;
 
 	OrthographicCamera camera;
 	SpriteBatch batch;
 
 	public RenderSystem() {
-		super(Aspect.getAspectForAll(Sprite.class, Position.class));
+		super(Aspect.getAspectForAll(SpriteComponent.class));
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false);
 		batch = new SpriteBatch();
@@ -37,13 +35,12 @@ public class RenderSystem extends EntityProcessingSystem {
 
 	@Override
 	protected void process(Entity e) {
-		Position p = pm.get(e);
-		Sprite sprite = sm.get(e);
+		SpriteComponent sprite = sm.get(e);
 		
 		TextureRegion region = Assets.getPixelRegion();
 		
 		batch.setColor(sprite.r, sprite.g, sprite.b, sprite.a);
-		batch.draw(region, p.x, p.y, sprite.w / 2, sprite.h / 2, sprite.w, sprite.h, sprite.scaleX, sprite.scaleY, sprite.angle);
+		batch.draw(region, sprite.x, sprite.y, sprite.w / 2, sprite.h / 2, sprite.w, sprite.h, sprite.scaleX, sprite.scaleY, sprite.angle);
 	}
 
 	@Override

@@ -34,8 +34,8 @@ public class GameManager extends Manager {
 	}
 	
 	public void createBlocks() {
-		float blockWidth = 70;
-		float blockHeight = 40;
+		float blockWidth = Constants.BLOCK_WIDTH;
+		float blockHeight = Constants.BLOCK_HEIGHT;
 		float cols = 7;
 		float rows = 5;
 		float spacing = 20;

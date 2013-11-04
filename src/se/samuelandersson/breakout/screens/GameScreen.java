@@ -9,12 +9,12 @@ import com.badlogic.gdx.utils.Array;
 
 import se.samuelandersson.breakout.EntityFactory;
 import se.samuelandersson.breakout.GameManager;
-import se.samuelandersson.breakout.systems.ActionsSystem;
 import se.samuelandersson.breakout.systems.CollisionSystem;
-import se.samuelandersson.breakout.systems.MovementSystem;
 import se.samuelandersson.breakout.systems.PlayerInputSystem;
 import se.samuelandersson.breakout.systems.RenderSystem;
 import se.samuelandersson.gdxcommon.Screen;
+import se.samuelandersson.gdxcommon.systems.ActionsSystem;
+import se.samuelandersson.gdxcommon.systems.MovementSystem;
 
 public class GameScreen implements Screen {
 

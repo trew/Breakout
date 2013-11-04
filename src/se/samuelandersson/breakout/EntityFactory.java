@@ -1,9 +1,8 @@
 package se.samuelandersson.breakout;
 
-import se.samuelandersson.breakout.components.ActionComponent;
-import se.samuelandersson.breakout.components.Position;
-import se.samuelandersson.breakout.components.Sprite;
-import se.samuelandersson.breakout.components.Velocity;
+import se.samuelandersson.gdxcommon.components.ActionContainer;
+import se.samuelandersson.gdxcommon.components.SpriteComponent;
+import se.samuelandersson.gdxcommon.components.VelocityComponent;
 
 import com.artemis.Entity;
 import com.artemis.World;
@@ -23,10 +22,10 @@ public class EntityFactory {
 	public static Entity createPlayer() {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - Constants.PADDLE_WIDTH / 2, 10));
-		e.addComponent(new Velocity(0, 0));
-		e.addComponent(new Sprite(Constants.PADDLE_WIDTH, Constants.PADDLE_HEIGHT, Color.WHITE));
-		e.addComponent(new ActionComponent());
+		e.addComponent(new VelocityComponent(0, 0));
+		e.addComponent(new SpriteComponent(Gdx.graphics.getWidth() / 2 - Constants.PADDLE_WIDTH / 2, 10, Constants.PADDLE_WIDTH,
+		      Constants.PADDLE_HEIGHT, Color.WHITE));
+		e.addComponent(new ActionContainer());
 
 		world.getManager(TagManager.class).register("PLAYER", e);
 		world.getManager(GroupManager.class).add(e, Group.BLOCK);
@@ -36,10 +35,10 @@ public class EntityFactory {
 	public static Entity createBall() {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(Gdx.graphics.getWidth() / 2 - 5, Gdx.graphics.getHeight() / 2 - 5));
-		e.addComponent(new Velocity(50, -100));
-		e.addComponent(new Sprite(Constants.BALL_WIDTH, Constants.BALL_HEIGHT));
-		e.addComponent(new ActionComponent());
+		e.addComponent(new VelocityComponent(50, -100));
+		e.addComponent(new SpriteComponent(Gdx.graphics.getWidth() / 2 - 5, Gdx.graphics.getHeight() / 2 - 5, Constants.BALL_WIDTH,
+		      Constants.BALL_HEIGHT));
+		e.addComponent(new ActionContainer());
 
 		world.getManager(GroupManager.class).add(e, Group.BALL);
 
@@ -53,10 +52,9 @@ public class EntityFactory {
 	public static Entity createBlock(float x, float y, float w, float h, Color color) {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(x, y));
-		e.addComponent(new Velocity(0, 0));
-		e.addComponent(new Sprite(w, h, color));
-		e.addComponent(new ActionComponent());
+		e.addComponent(new VelocityComponent(0, 0));
+		e.addComponent(new SpriteComponent(x, y, w, h, color));
+		e.addComponent(new ActionContainer());
 
 		world.getManager(GroupManager.class).add(e, Group.BLOCK);
 
