@@ -39,7 +39,7 @@ public class RenderSystem extends EntityProcessingSystem {
 		
 		TextureRegion region = Assets.getPixelRegion();
 		
-		batch.setColor(sprite.r, sprite.g, sprite.b, sprite.a);
+		batch.setColor(sprite.color);
 		batch.draw(region, sprite.x, sprite.y, sprite.w / 2, sprite.h / 2, sprite.w, sprite.h, sprite.scaleX, sprite.scaleY, sprite.angle);
 	}
 

@@ -2,6 +2,7 @@ package se.samuelandersson.breakout.systems;
 
 import se.samuelandersson.breakout.Constants;
 import se.samuelandersson.breakout.GameManager;
+import se.samuelandersson.breakout.Settings;
 import se.samuelandersson.gdxcommon.components.SpriteComponent;
 import se.samuelandersson.gdxcommon.components.VelocityComponent;
 
@@ -46,6 +47,9 @@ public class PlayerInputSystem extends VoidEntitySystem implements InputProcesso
 		}
 		if (keycode == Keys.B) {
 			world.getManager(GameManager.class).addBall();
+		}
+		if (keycode == Keys.J) {
+			Settings.JUICY = !Settings.JUICY;
 		}
 		return false;
 	}

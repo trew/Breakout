@@ -1,7 +1,10 @@
 package se.samuelandersson.breakout.systems;
 
 import se.samuelandersson.breakout.Group;
+import se.samuelandersson.breakout.Settings;
 import se.samuelandersson.gdxcommon.actions.Actions;
+import se.samuelandersson.gdxcommon.actions.ColorAction;
+import se.samuelandersson.gdxcommon.actions.ParallelAction;
 import se.samuelandersson.gdxcommon.actions.SequenceAction;
 import se.samuelandersson.gdxcommon.components.ActionContainer;
 import se.samuelandersson.gdxcommon.components.SpriteComponent;
@@ -14,6 +17,7 @@ import com.artemis.managers.GroupManager;
 import com.artemis.managers.TagManager;
 import com.artemis.systems.VoidEntitySystem;
 import com.artemis.utils.ImmutableBag;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
@@ -87,7 +91,7 @@ public class CollisionSystem extends VoidEntitySystem {
 			@Override
 			public void handle(Entity a, Entity b, Rectangle intersection) {
 				VelocityComponent ballVelocity = vm.get(a);
-				
+
 				SpriteComponent ballSprite = sm.get(a);
 				SpriteComponent blockSprite = sm.get(b);
 
@@ -113,25 +117,41 @@ public class CollisionSystem extends VoidEntitySystem {
 					}
 				}
 
-				ActionContainer bc = am.get(a);
-				SequenceAction seq = Actions.sequence();
-				seq.addAction(Actions.scaleTo(1.5f, 1.5f, 0.1f));
-				seq.addAction(Actions.scaleTo(0.75f, 0.75f, 0.1f));
-				seq.addAction(Actions.scaleTo(1.0f, 1.0f, 0.1f));
-				bc.add(seq);
+				if (Settings.JUICY) {
+					ActionContainer bc = am.get(a);
+					ParallelAction par = Actions.parallel();
 
+					SequenceAction colorSeq = Actions.sequence();
+					ColorAction to = Actions.color(
+					      new Color(MathUtils.random(0.1f, 1f), MathUtils.random(0.1f, 1f), MathUtils.random(0.1f, 1f), 1), 0.15f);
+					ColorAction back = Actions.color(Color.WHITE, 0.15f);
+					colorSeq.addAction(to).addAction(back);
+
+					SequenceAction seq = Actions.sequence();
+					seq.addAction(Actions.scaleTo(1.5f, 1.5f, 0.1f));
+					seq.addAction(Actions.scaleTo(0.75f, 0.75f, 0.1f));
+					seq.addAction(Actions.scaleTo(1.0f, 1.0f, 0.1f));
+
+					par.addAction(colorSeq).addAction(seq);
+					bc.add(par);
+
+				}
 				// ... and delete the block
-				// TODO: delete it in a fancy and juicy way
 				if (world.getManager(TagManager.class).getEntity("PLAYER").getId() != b.getId()) {
 					world.getManager(GroupManager.class).remove(b, Group.BLOCK);
-					ActionContainer ac = am.get(b);
-					seq = Actions.sequence();
-					float startX = MathUtils.random(1.1f, 1.3f);
-					float startY = MathUtils.random(1.1f, 1.3f);
-					seq.addAction(Actions.scaleTo(startX, startY, 0.1f));
-					seq.addAction(Actions.scaleTo(0f, 0f, 0.2f));
-					seq.addAction(Actions.remove());
-					ac.add(seq);
+
+					if (Settings.JUICY) {
+						ActionContainer ac = am.get(b);
+						SequenceAction seq = Actions.sequence();
+						float startX = MathUtils.random(1.1f, 1.3f);
+						float startY = MathUtils.random(1.1f, 1.3f);
+						seq.addAction(Actions.scaleTo(startX, startY, 0.1f));
+						seq.addAction(Actions.scaleTo(0f, 0f, 0.2f));
+						seq.addAction(Actions.remove());
+						ac.add(seq);
+					} else {
+						b.deleteFromWorld();
+					}
 				}
 			}
 		}));
